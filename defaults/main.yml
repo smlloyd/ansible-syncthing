@@ -1,0 +1,16 @@
+---
+arch:
+  x86_64: amd64
+  i386:   386
+
+syncthing_version: latest
+syncthing_user: syncthing
+syncthing_address: 127.0.0.1:8080
+syncthing_listen: tcp://0.0.0.0:22000
+syncthing_home: /home/{{ syncthing_user }}
+syncthing_localannounce: true
+syncthing_globalannounce: true
+syncthing_upnp: true
+#syncthing_gui_user: root
+#password: root
+#syncthing_gui_password: $6$rounds=100000$jGAiwLLZCjRLZW5l$1mfgjFV9IPdc95w9aFAWgvCL4B1Z6fsQGaRwn79lUTvXKJVrSLzm7qdl1/rHLCHcIon5KhEF/.I06MHrW5tWC0
