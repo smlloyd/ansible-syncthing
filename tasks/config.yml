@@ -1,0 +1,53 @@
+---
+- name: register home directory for user "{{ user }}"
+  shell: "getent passwd {{ user }} | cut -d: -f6"
+  changed_when: false
+  register: home_dir
+
+- set_fact:
+    configfile: "{{ home_dir.stdout }}/.config/syncthing/config.xml"
+
+- name: systemd | activate service
+  service:
+    name: syncthing@{{ user }}
+    enabled: yes
+    state: started
+
+- name: "waiting for {{ configfile }} (takes some time)"
+  wait_for: path={{ configfile }}
+
+- name: manage various settings in config.xml
+  xml:
+    file: "{{ configfile }}"
+    xpath: "{{ item.xpath }}"
+    value: "{{ item.value }}"
+  with_items:
+    - xpath: /configuration/gui/address
+      value: "{{ syncthing_users[user]['gui_address']}}"
+    - xpath: /configuration/options/listenAddress
+      value: "{{ syncthing_users[user]['listen_address']}}"
+    - xpath: /configuration/options/localAnnounceEnabled
+      value: "{{ syncthing_localannounce|lower }}"
+    - xpath: /configuration/options/globalAnnounceEnabled
+      value: "{{ syncthing_globalannounce|lower }}"
+    - xpath: /configuration/options/upnpEnabled
+      value: "{{ syncthing_upnp|lower }}"
+    - xpath: /configuration/gui/user
+      value: "{{ user }}"
+
+- name: check for existing password in config.xml (we don't want to overwrite it)
+  xml:
+    path: "{{ configfile }}"
+    xpath: /configuration/gui/password
+    content: text
+  changed_when: false
+  ignore_errors: true
+  register: password_exists
+
+- name: set password in config.xml
+  xml:
+    file: "{{ configfile }}"
+    xpath: /configuration/gui/password
+    value: "{{ syncthing_users[user]['password'] | default(syncthing_default_password) }}"
+  when: password_exists.failed
+  notify: restart syncthing

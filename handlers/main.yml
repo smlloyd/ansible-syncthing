@@ -1,3 +1,6 @@
 ---
-- name: restart syncthing service
-  service: name=syncthing state=restarted
+- name: restart syncthing
+  service:
+    name: "syncthing@{{ item }}"
+    state: restarted
+  with_items: "{{ syncthing_users }}"

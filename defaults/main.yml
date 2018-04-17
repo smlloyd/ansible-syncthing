@@ -4,13 +4,10 @@ arch:
   i386:   386
 
 syncthing_version: latest
-syncthing_user: syncthing
-syncthing_address: 127.0.0.1:8080
-syncthing_listen: tcp://0.0.0.0:22000
-syncthing_home: /home/{{ syncthing_user }}
+syncthing_users: {}
 syncthing_localannounce: true
 syncthing_globalannounce: true
 syncthing_upnp: true
-#syncthing_gui_user: root
-#password: root
-#syncthing_gui_password: $6$rounds=100000$jGAiwLLZCjRLZW5l$1mfgjFV9IPdc95w9aFAWgvCL4B1Z6fsQGaRwn79lUTvXKJVrSLzm7qdl1/rHLCHcIon5KhEF/.I06MHrW5tWC0
+syncthing_path: /usr/local/bin/syncthing
+syncthing_args: -no-browser -no-restart -logflags=0
+syncthing_default_password: $2b$10$H9lWkOP4PlknK4SVi1u6o.9GDONtpDGOcoxu/u.p/GgKJMaEdcd6a

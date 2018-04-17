@@ -1,0 +1,54 @@
+---
+- name: get syncthing version
+  shell: "{{ syncthing_path }} --version"
+  changed_when: false
+  ignore_errors: true
+  register: version_info
+
+- name: set fact syncthing_installed_version
+  set_fact:
+    syncthing_installed_version={{ version_info.stdout | regex_replace('syncthing.(v\d+\.\d+\.\d+).*', '\1') }}
+
+- name: get latest version info
+  uri:
+    url: https://api.github.com/repos/syncthing/syncthing/releases/latest
+    method: GET
+    return_content: yes
+  register: syncthing_latest_version_info
+
+- name: set fact syncthing_version
+  set_fact:
+    syncthing_version: "{{ (syncthing_latest_version_info.content|from_json).tag_name }}"
+  when: syncthing_version == "latest"
+
+- name: download syncthing
+  get_url:
+    url: "https://github.com/syncthing/syncthing/releases/download/{{ syncthing_version }}/syncthing-{{ ansible_system|lower }}-{{ arch[ansible_architecture] }}-{{ syncthing_version }}.tar.gz"
+    dest: /tmp/syncthing_{{syncthing_version}}.tar.gz
+  when: version_info|failed or syncthing_installed_version != syncthing_version
+
+- name: extract and install syncthing
+  unarchive:
+    src: /tmp/syncthing_{{ syncthing_version }}.tar.gz
+    dest: /tmp
+    copy: no
+  when: version_info|failed or syncthing_installed_version != syncthing_version
+
+  #- name: copy syncthing executable to {{ syncthing_path }}
+- name: "copy /tmp/syncthing-{{ ansible_system|lower }}-{{ arch[ansible_architecture] }}-{{ syncthing_version }}/syncthing"
+  copy:
+    src: "/tmp/syncthing-{{ ansible_system|lower }}-{{ arch[ansible_architecture] }}-{{ syncthing_version }}/syncthing"
+    remote_src: yes
+    dest: "{{ syncthing_path }}"
+    owner: root
+    group: root
+    mode: 755
+  when: version_info|failed or syncthing_installed_version != syncthing_version
+
+- name: systemd | install service
+  template:
+    src: syncthing@.service
+    dest: /etc/systemd/system/syncthing@.service
+    owner: root
+    group: root
+    mode: 755
