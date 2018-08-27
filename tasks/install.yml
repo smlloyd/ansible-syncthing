@@ -4,6 +4,7 @@
   changed_when: false
   ignore_errors: true
   register: version_info
+  check_mode: no
 
 - name: set fact syncthing_installed_version
   set_fact:
@@ -15,6 +16,7 @@
     method: GET
     return_content: yes
   register: syncthing_latest_version_info
+  check_mode: no
 
 - name: set fact syncthing_version
   set_fact:
@@ -25,14 +27,14 @@
   get_url:
     url: "https://github.com/syncthing/syncthing/releases/download/{{ syncthing_version }}/syncthing-{{ ansible_system|lower }}-{{ arch[ansible_architecture] }}-{{ syncthing_version }}.tar.gz"
     dest: /tmp/syncthing_{{syncthing_version}}.tar.gz
-  when: version_info|failed or syncthing_installed_version != syncthing_version
+  when: version_info is failed or syncthing_installed_version != syncthing_version
 
 - name: extract and install syncthing
   unarchive:
     src: /tmp/syncthing_{{ syncthing_version }}.tar.gz
     dest: /tmp
     copy: no
-  when: version_info|failed or syncthing_installed_version != syncthing_version
+  when: version_info is failed or syncthing_installed_version != syncthing_version
 
   #- name: copy syncthing executable to {{ syncthing_path }}
 - name: "copy /tmp/syncthing-{{ ansible_system|lower }}-{{ arch[ansible_architecture] }}-{{ syncthing_version }}/syncthing"
@@ -43,7 +45,7 @@
     owner: root
     group: root
     mode: 755
-  when: version_info|failed or syncthing_installed_version != syncthing_version
+  when: version_info is failed or syncthing_installed_version != syncthing_version
 
 - name: systemd | install service
   template:

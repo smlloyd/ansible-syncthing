@@ -3,6 +3,7 @@
   shell: "getent passwd {{ user }} | cut -d: -f6"
   changed_when: false
   register: home_dir
+  check_mode: no
 
 - set_fact:
     configfile: "{{ home_dir.stdout }}/.config/syncthing/config.xml"
